@@ -45,8 +45,9 @@ class SampleListener(Leap.Listener):
         # Get the most recent frame and report some basic information
         frame = controller.frame()
 
-        app_width = 1365
-        app_height = 765
+        # app_width = 1365
+        # app_height = 765
+        app_width, app_height = 1865, 1265
         i_box = frame.interaction_box
         hand = frame.hands[0]
 
@@ -89,7 +90,7 @@ class SampleListener(Leap.Listener):
                     finger = Leap.Finger(pi)
                     if finger.type() == 1 and finger.is_extended:
                         normalized_tip = i_box.normalize_point(finger.tip_position)
-                        app_x = app_width  * normalized_tip.x
+                        app_x = app_width * normalized_tip.x
                         # positive values for y axis go down
                         app_y = app_height * (1 - normalized_tip.y)
                         if (self.last_x == 0 and self.last_y == 0) or (app_x - self.last_x < 50 and app_y - self.last_y < 50):
@@ -116,18 +117,6 @@ class SampleListener(Leap.Listener):
                     else:
                         self.last_x, self.last_y = 0, 0
 
-    def state_string(self, state):
-        if state == Leap.Gesture.STATE_START:
-            return "STATE_START"
-
-        if state == Leap.Gesture.STATE_UPDATE:
-            return "STATE_UPDATE"
-
-        if state == Leap.Gesture.STATE_STOP:
-            return "STATE_STOP"
-
-        if state == Leap.Gesture.STATE_INVALID:
-            return "STATE_INVALID"
 
 def main():
     # Create a sample listener and controller
