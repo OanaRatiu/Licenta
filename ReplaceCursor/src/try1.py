@@ -40,8 +40,8 @@ class SampleListener(Leap.Listener):
         # positive values for y axis go down
         app_y = app_height * (1 - normalized_tip.y)
 
-        bashCommand = "xdotool mousemove %f %f" % (app_x, app_y)
-        self.execute_command(bashCommand)
+        bash_command = "xdotool mousemove %f %f" % (app_x, app_y)
+        self.execute_command(bash_command)
 
         # index + middle finger for click and double click
         n1 = i_box.normalize_point(hand.fingers[1].stabilized_tip_position)
@@ -51,21 +51,21 @@ class SampleListener(Leap.Listener):
 
         if time.time() - self.now >= 0.35:
             if self._fingers_extended(n1, n2, n3, n4):
-                bashCommand = "xdotool click --repeat 1 1"
-                self.execute_command(bashCommand)
+                bash_command = "xdotool click --repeat 1 1"
+                self.execute_command(bash_command)
                 self.now = time.time()
 
         # drag & drop - rotate hand downwards 90 degrees
-        bashCommand = ''
+        bash_command = ''
         if hand.basis.y_basis.x > 0.9 and self.down is False:
-            bashCommand = "xdotool mousedown 1"
+            bash_command = "xdotool mousedown 1"
             self.down = True
         elif (hand.basis.y_basis.x > -0.2 and hand.basis.y_basis.x < 0.2
                 and self.down is True):
-            bashCommand = "xdotool mouseup 1"
+            bash_command = "xdotool mouseup 1"
             self.down = False
-        if bashCommand:
-            self.execute_command(bashCommand)
+        if bash_command:
+            self.execute_command(bash_command)
 
         # scroll
         if time.time() - self.scroll >= 0.1:
@@ -74,17 +74,17 @@ class SampleListener(Leap.Listener):
                     circle = CircleGesture(gesture)
                     if circle.pointable.direction.angle_to(circle.normal) <= Leap.PI/2:
                         # clockwise - move down
-                        bashCommand = "xdotool click --clearmodifiers 5"
+                        bash_command = "xdotool click --clearmodifiers 5"
                     else:
                         # counterclockwise - move up
-                        bashCommand = "xdotool click --clearmodifiers 4"
-                    self.execute_command(bashCommand)
+                        bash_command = "xdotool click --clearmodifiers 4"
+                    self.execute_command(bash_command)
             self.scroll = time.time()
 
-    def _fingers_extended(self, n1, n2, n3, n4):
-        return (abs(n1.x - n2.x) > 0.13
-                or abs(n2.x - n3.x) > 0.12
-                or abs(n3.x - n4.x) > 0.10)
+    def _fingers_extended(self, index, middle, ring, pinky):
+        return (abs(index.x - middle.x) > 0.13
+                or abs(middle.x - ring.x) > 0.12
+                or abs(ring.x - pinky.x) > 0.10)
 
     def execute_command(self, bash_command):
         process = subprocess.Popen(
