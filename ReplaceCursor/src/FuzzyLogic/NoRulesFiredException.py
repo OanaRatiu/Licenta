@@ -1,0 +1,2 @@
+class NoRulesFiredException(Exception):
+    pass
