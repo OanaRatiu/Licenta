@@ -43,4 +43,64 @@ class FuzzyEngine(object):
         r.add_result(lv.name,
                      lv.get_membership_function(rule['fuzzy_set']).name)
 
+        r.add_connective(rule['connective'])
+
         self.rules.append(r)
+
+    def defuzzify(self, tremble, distance):
+        """
+        Given tremble and distance as crisp inputs, compute how much the
+        mf for sickness
+        """
+        # compute mfs for the crisp inputs
+        tremble_lv = self.linguistic_variables['tremble']
+        tremble_mfs = {}
+        for name, mf in tremble_lv.membership_functions.items():
+            mf_value = mf.fuzzify(tremble)
+            if mf_value != 0:
+                tremble_mfs[name] = mf_value
+
+        distance_lv = self.linguistic_variables['distance']
+        distance_mfs = {}
+        for name, mf in distance_lv.membership_functions.items():
+            mf_value = mf.fuzzify(distance)
+            if mf_value != 0:
+                distance_mfs[name] = mf_value
+
+        # if mf values are different form 0, then we search for rules that
+        # have the lv and mf names in them
+        sickness_mfs = []
+        for tremble_name, tremble_mf in tremble_mfs.items():
+            for distance_name, distance_mf in distance_mfs.items():
+                rule = self.get_rule(tremble_name, distance_name)
+                if rule:
+                    if rule.connective == 'and':
+                        mf = max(tremble_mf, distance_mf)
+                    else:
+                        mf = min(tremble_mf, distance_mf)
+                    sickness_mfs.append(self.max_mf(mf))
+
+    def get_rule(self, tremble_name, distance_name):
+        """
+        Search the rule that has tremble tremble_name
+        and distance distance_name
+        """
+        for rule in self.rules:
+            if (rule.verify_rule('tremble', tremble_name) and
+                    rule.verify_rule('distance', distance_name)):
+                return rule
+        return False
+
+    def max_mf(self, value):
+        """
+        Compute the values of each mf of the linguistic variable sickness
+        """
+        sickness_lv = self.linguistic_variables['sickness']
+        max_mf = {}
+        for mf_name, mf in sickness_lv.membership_functions.items():
+            fuzzy_value = mf.fuzzify(value)
+            if not max_mf:
+                max_mf = {mf_name: fuzzy_value}
+            elif max_mf.values()[0] < fuzzy_value:
+                max_mf = {mf_name: fuzzy_value}
+        return max_mf

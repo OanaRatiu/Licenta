@@ -18,8 +18,5 @@ class LinguisticVariable(object):
     def get_membership_function(self, name):
         return self.membership_functions[name]
 
-    def defuziffy(self):
-        """
-        Defuzzify using Centroid method
-        """
-        pass
+    def defuziffy(self, value, mf_name):
+        return self.membership_functions[mf_name].fuzzify(value)

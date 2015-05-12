@@ -9,9 +9,20 @@ class FuzzyRule(object):
         """
         self.premises = []
         self.result = {}
+        self.connective = None
 
     def add_premise(self, lv_name, mf_name):
         self.premises.append({lv_name: mf_name})
 
     def add_result(self, lv_name, mf_name):
         self.result[lv_name] = mf_name
+
+    def add_connective(self, connective):
+        self.connective = connective
+
+    def verify_rule(self, lv_name, mf_name):
+        for premise in self.premises:
+            if premise.get(lv_name):
+                if premise[lv_name] == mf_name:
+                    return True
+        return False

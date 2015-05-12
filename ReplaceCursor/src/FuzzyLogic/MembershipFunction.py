@@ -2,12 +2,12 @@ class MembershipFunction(object):
     """
     Trapezoidal MF
     """
-    def __init__(self, name, range):
+    def __init__(self, name, range_in):
         """
         Input: name_in - string, range - the 4 points of the trapezoid
         """
         self.name = name
-        self.range = range
+        self.range = range_in
 
     def fuzzify(self, X):
         """
