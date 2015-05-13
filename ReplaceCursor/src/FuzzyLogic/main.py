@@ -30,17 +30,15 @@ if __name__ == "__main__":
 
     # define the rules
     f.evaluate_rule('if tremble is low and distance is small then sickness is low')
-    f.evaluate_rule('if tremble is low and distance is medium then sickness is low')
-    f.evaluate_rule('if tremble is low and distance is high then sickness is medium')
+    # f.evaluate_rule('if tremble is low and distance is medium then sickness is low')
+    # f.evaluate_rule('if tremble is low and distance is high then sickness is medium')
 
-    f.evaluate_rule('if tremble is moderate and distance is small then sickness is medium')
     f.evaluate_rule('if tremble is moderate and distance is medium then sickness is medium')
     f.evaluate_rule('if tremble is moderate and distance is high then sickness is high')
+    # f.evaluate_rule('if tremble is moderate and distance is small then sickness is medium')
 
     f.evaluate_rule('if tremble is high and distance is small then sickness is high')
-    f.evaluate_rule('if tremble is high and distance is medium then sickness is high')
-    f.evaluate_rule('if tremble is high and distance is high then sickness is high')
+    # f.evaluate_rule('if tremble is high and distance is medium then sickness is high')
+    # f.evaluate_rule('if tremble is high and distance is high then sickness is high')
 
-    print f.rules
-
-    print f.defuzzify(2.5, 3.543)
+    f.defuzzify(2.5, 3.5)

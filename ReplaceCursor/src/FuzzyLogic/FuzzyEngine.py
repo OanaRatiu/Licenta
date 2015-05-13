@@ -74,11 +74,16 @@ class FuzzyEngine(object):
             for distance_name, distance_mf in distance_mfs.items():
                 rule = self.get_rule(tremble_name, distance_name)
                 if rule:
+                    print rule.premises, rule.result
                     if rule.connective == 'and':
-                        mf = max(tremble_mf, distance_mf)
+                        min_mf = min(tremble_mf, distance_mf)
                     else:
-                        mf = min(tremble_mf, distance_mf)
-                    sickness_mfs.append(self.max_mf(mf))
+                        min_mf = max(tremble_mf, distance_mf)
+                    sickenss_mf_name = rule.result['sickness']
+                    sickness_mfs.append({sickenss_mf_name: min_mf})
+
+        # we apply centroid method on all sickness mf that are in sickness_mfs
+        print sickness_mfs
 
     def get_rule(self, tremble_name, distance_name):
         """
@@ -94,6 +99,7 @@ class FuzzyEngine(object):
     def max_mf(self, value):
         """
         Compute the values of each mf of the linguistic variable sickness
+        and return the MAX value
         """
         sickness_lv = self.linguistic_variables['sickness']
         max_mf = {}
