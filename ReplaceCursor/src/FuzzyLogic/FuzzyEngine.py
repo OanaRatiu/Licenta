@@ -1,4 +1,5 @@
 import re
+import itertools as IT
 from FuzzyRule import FuzzyRule
 
 
@@ -74,7 +75,6 @@ class FuzzyEngine(object):
             for distance_name, distance_mf in distance_mfs.items():
                 rule = self.get_rule(tremble_name, distance_name)
                 if rule:
-                    print rule.premises, rule.result
                     if rule.connective == 'and':
                         min_mf = min(tremble_mf, distance_mf)
                     else:
@@ -83,7 +83,8 @@ class FuzzyEngine(object):
                     sickness_mfs.append({sickenss_mf_name: min_mf})
 
         # we apply centroid method on all sickness mf that are in sickness_mfs
-        print sickness_mfs
+        # print sickness_mfs
+        return self.centroid_method(sickness_mfs)
 
     def get_rule(self, tremble_name, distance_name):
         """
@@ -96,17 +97,160 @@ class FuzzyEngine(object):
                 return rule
         return False
 
-    def max_mf(self, value):
+    def centroid_method(self, mfs):
         """
-        Compute the values of each mf of the linguistic variable sickness
-        and return the MAX value
+        Apply centroid method on the mfs of sickness
         """
         sickness_lv = self.linguistic_variables['sickness']
-        max_mf = {}
-        for mf_name, mf in sickness_lv.membership_functions.items():
-            fuzzy_value = mf.fuzzify(value)
-            if not max_mf:
-                max_mf = {mf_name: fuzzy_value}
-            elif max_mf.values()[0] < fuzzy_value:
-                max_mf = {mf_name: fuzzy_value}
-        return max_mf
+
+        # order the sickness mfs by the x coordinates
+        s = []
+        sickness_mfs = self._order_by_first_point(
+            sickness_lv.membership_functions.values())
+        for sickness_mf in sickness_mfs:
+            for mf in mfs:
+                if sickness_mf.name == mf.keys()[0]:
+                    s.append({sickness_mf: mf[mf.keys()[0]]})
+
+        return self.centroid_of_polygon(self.get_polygon_vertices(s))[0]
+
+    def get_polygon_vertices(self, min_mfs):
+        """
+        Input: min_mfs - a list of dictionaries containing the mf and
+                         the point where it will be clipped
+        """
+        mf1 = min_mfs[0].keys()[0]
+        point1 = [mf1.range[0], 0]
+
+        # build the clipped trapeziums
+        trapeziums = []
+        for min_mf in min_mfs:
+            mf, mf_clip = min_mf.keys()[0], min_mf[min_mf.keys()[0]]
+            # we will always have 4 points in a trapezoid
+            point1 = (mf.range[0], 0)
+
+            try:
+                a, b = mf.get_ascending_slope()
+                x = (mf_clip - b)/a
+            except:
+                x = mf.range[0]
+            point2 = (x, mf_clip)
+
+            try:
+                a, b = mf.get_descending_slope()
+                x = (mf_clip - b)/a
+            except:
+                x = mf.range[3]
+            point3 = (x, mf_clip)
+
+            point4 = (mf.range[3], 0)
+            trapeziums.append([point1, point2, point3, point4])
+
+        if len(trapeziums) == 1:
+            return trapeziums[0]
+
+        intersection_points = []
+        for i in range(len(trapeziums)-1):
+            for j in range(len(trapeziums[i])-1):
+                line1 = [trapeziums[i][j], trapeziums[i][j+1]]
+                for k in range(len(trapeziums[i+1])-1):
+                    line2 = [trapeziums[i+1][k], trapeziums[i+1][k+1]]
+                    intersection_point = self.line_intersection(line1, line2)
+                    if intersection_point:
+                        intersection_points.append(intersection_point)
+                        break
+
+        points = []
+        # treat differently the first trapezium, the last one
+        # and the ones in the middle
+
+        # first trapezium
+        first_trapezium = trapeziums[0]
+        for point in first_trapezium:
+            if point[0] < intersection_points[0][0]:
+                points.append(point)
+        if (intersection_points[0][0] > points[-1][0]):
+            points.append(intersection_points[0])
+
+        # trapeziums in the middle
+        for i in range(1, len(trapeziums)-1):
+            point = intersection_points[i]
+            first_trapezium = trapeziums[i]
+            for j in range(len(first_trapezium)):
+                if (first_trapezium[j][0] < point[0] and
+                        first_trapezium[j][0] > points[-1][0]):
+                    points.append(first_trapezium[j])
+            if (point[0] > points[-1][0]):
+                points.append(point)
+
+        # last trapezium
+        last_trapezium = trapeziums[len(trapeziums)-1]
+        len_int_points = len(intersection_points) - 1
+        for point in last_trapezium:
+            if point[0] > intersection_points[len_int_points][0]:
+                points.append(point)
+
+        return points
+
+    def line_intersection(self, line1, line2):
+        xdiff = (line1[0][0] - line1[1][0], line2[0][0] - line2[1][0])
+        ydiff = (line1[0][1] - line1[1][1], line2[0][1] - line2[1][1])
+
+        def det(a, b):
+            return float(a[0]) * b[1] - float(a[1]) * b[0]
+
+        div = det(xdiff, ydiff)
+        if div == 0:
+            return None
+
+        d = (det(*line1), det(*line2))
+        x = det(d, xdiff) / div
+        y = det(d, ydiff) / div
+
+        if (x < min(line1[0][0], line1[1][0]) or
+                x > max(line1[0][0], line1[1][0]) or
+                x < min(line2[0][0], line2[1][0]) or
+                x > max(line2[0][0], line2[1][0])):
+            return None
+        if (y < min(line1[0][1], line1[1][1]) or
+                y > max(line1[0][1], line1[1][1]) or
+                y < min(line2[0][1], line2[1][1]) or
+                y > max(line2[0][1], line2[1][1])):
+            return None
+        return x, y
+
+    def _order_by_first_point(self, functions):
+        """
+        Order the functions by the first point in the trapezoid
+        """
+        for i in range(len(functions)):
+            for j in range(i+1, len(functions)):
+                if functions[i].range[0] >= functions[j].range[0]:
+                    functions[i], functions[j] = functions[j], functions[i]
+        return functions
+
+    def area_of_polygon(self, x, y):
+        """
+        Calculates the signed area of an arbitrary polygon given its verticies
+        """
+        area = 0.0
+        for i in xrange(-1, len(x) - 1):
+            area += x[i] * (y[i + 1] - y[i - 1])
+        return area / 2.0
+
+    def centroid_of_polygon(self, points):
+        area = self.area_of_polygon(*zip(*points))
+        result_x = 0
+        result_y = 0
+        N = len(points)
+        points = IT.cycle(points)
+        x1, y1 = next(points)
+        for i in range(N):
+            x0, y0 = x1, y1
+            x1, y1 = next(points)
+            cross = (x0 * y1) - (x1 * y0)
+            result_x += (x0 + x1) * cross
+            result_y += (y0 + y1) * cross
+        result_x /= (area * 6.0)
+        result_y /= (area * 6.0)
+        return (result_x, result_y)

@@ -32,12 +32,18 @@ class MembershipFunction(object):
 
         return 0
 
-    def plot(self, left_x_axis, right_x_axis, size):
-        """
-        Return an array with discrete representation of the membership function
-        Input: left_x_axis, right_x_axis - where the trapezoid will start
-               size - number of discrete steps
-        """
-        increment = abs((left_x_axis - right_x_axis)/size)
-        return [self.fuzzify(right_x_axis + increment * i)
-                for i in range(size)]
+    def get_ascending_slope(self):
+        a = float(1/(self.range[1] - self.range[0]))
+        b = float(-self.range[0]/(self.range[1] - self.range[0]))
+        return [a, b]
+
+    def get_descending_slope(self):
+        a = float(-1/(self.range[3] - self.range[2]))
+        b = float(self.range[3]/(self.range[3] - self.range[2]))
+        return [a, b]
+
+    def get_0_slope(self):
+        return [0, 0]
+
+    def get_1_slope(self):
+        return [0, 1]

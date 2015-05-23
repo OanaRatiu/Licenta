@@ -41,4 +41,4 @@ if __name__ == "__main__":
     # f.evaluate_rule('if tremble is high and distance is medium then sickness is high')
     # f.evaluate_rule('if tremble is high and distance is high then sickness is high')
 
-    f.defuzzify(2.5, 3.5)
+    print f.defuzzify(2.5, 3.5)
