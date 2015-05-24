@@ -1,7 +1,8 @@
 from FuzzyEngine import FuzzyEngine
 from LinguisticVariable import LinguisticVariable
 
-if __name__ == "__main__":
+
+def compute_sickness(tremble_value, distance_value):
     # define tremble
     tremble = LinguisticVariable('tremble')
     tremble.add('low', 0, 0, 2, 3)
@@ -30,15 +31,15 @@ if __name__ == "__main__":
 
     # define the rules
     f.evaluate_rule('if tremble is low and distance is small then sickness is low')
-    # f.evaluate_rule('if tremble is low and distance is medium then sickness is low')
-    # f.evaluate_rule('if tremble is low and distance is high then sickness is medium')
+    f.evaluate_rule('if tremble is low and distance is medium then sickness is low')
+    f.evaluate_rule('if tremble is low and distance is high then sickness is medium')
 
     f.evaluate_rule('if tremble is moderate and distance is medium then sickness is medium')
     f.evaluate_rule('if tremble is moderate and distance is high then sickness is high')
-    # f.evaluate_rule('if tremble is moderate and distance is small then sickness is medium')
+    f.evaluate_rule('if tremble is moderate and distance is small then sickness is medium')
 
     f.evaluate_rule('if tremble is high and distance is small then sickness is high')
-    # f.evaluate_rule('if tremble is high and distance is medium then sickness is high')
-    # f.evaluate_rule('if tremble is high and distance is high then sickness is high')
+    f.evaluate_rule('if tremble is high and distance is medium then sickness is high')
+    f.evaluate_rule('if tremble is high and distance is high then sickness is high')
 
-    print f.defuzzify(2.5, 3.5)
+    return f.defuzzify(tremble_value, distance_value)

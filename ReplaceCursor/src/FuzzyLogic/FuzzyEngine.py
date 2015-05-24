@@ -83,7 +83,6 @@ class FuzzyEngine(object):
                     sickness_mfs.append({sickenss_mf_name: min_mf})
 
         # we apply centroid method on all sickness mf that are in sickness_mfs
-        # print sickness_mfs
         return self.centroid_method(sickness_mfs)
 
     def get_rule(self, tremble_name, distance_name):
@@ -110,7 +109,14 @@ class FuzzyEngine(object):
         for sickness_mf in sickness_mfs:
             for mf in mfs:
                 if sickness_mf.name == mf.keys()[0]:
-                    s.append({sickness_mf: mf[mf.keys()[0]]})
+                    exists = False
+                    for existing_s in s:
+                        key = existing_s.keys()[0]
+                        if (existing_s.keys()[0].name == sickness_mf.name
+                                and existing_s[key] > mf[mf.keys()[0]]):
+                            exists = True
+                    if not exists:
+                        s.append({sickness_mf: mf[mf.keys()[0]]})
 
         return self.centroid_of_polygon(self.get_polygon_vertices(s))[0]
 
@@ -119,9 +125,6 @@ class FuzzyEngine(object):
         Input: min_mfs - a list of dictionaries containing the mf and
                          the point where it will be clipped
         """
-        mf1 = min_mfs[0].keys()[0]
-        point1 = [mf1.range[0], 0]
-
         # build the clipped trapeziums
         trapeziums = []
         for min_mf in min_mfs:
@@ -145,6 +148,9 @@ class FuzzyEngine(object):
 
             point4 = (mf.range[3], 0)
             trapeziums.append([point1, point2, point3, point4])
+
+        if not trapeziums:
+            return []
 
         if len(trapeziums) == 1:
             return trapeziums[0]
