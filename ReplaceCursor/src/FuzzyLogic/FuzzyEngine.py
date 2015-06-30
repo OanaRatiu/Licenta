@@ -94,7 +94,7 @@ class FuzzyEngine(object):
             if (rule.verify_rule('tremble', tremble_name) and
                     rule.verify_rule('distance', distance_name)):
                 return rule
-        return False
+        return None
 
     def centroid_method(self, mfs):
         """
@@ -102,21 +102,26 @@ class FuzzyEngine(object):
         """
         sickness_lv = self.linguistic_variables['sickness']
 
-        # order the sickness mfs by the x coordinates
+        # if there is more than one mfs with the same name, choose the MAX
+        mfs_values = []
+        for mf in mfs:
+            mf_2 = [m for m in mfs_values if m.keys()[0] == mf.keys()[0]]
+            if mf_2:
+                value_2 = mf_2[0][mf_2[0].keys()[0]]
+                value = mf[mf.keys()[0]]
+                if value_2 < value:
+                    mf_2[0][mf_2[0].keys()[0]] = value
+            else:
+                mfs_values.append(mf)
+
         s = []
+        # order the sickness mfs by the x coordinates
         sickness_mfs = self._order_by_first_point(
             sickness_lv.membership_functions.values())
         for sickness_mf in sickness_mfs:
-            for mf in mfs:
+            for mf in mfs_values:
                 if sickness_mf.name == mf.keys()[0]:
-                    exists = False
-                    for existing_s in s:
-                        key = existing_s.keys()[0]
-                        if (existing_s.keys()[0].name == sickness_mf.name
-                                and existing_s[key] > mf[mf.keys()[0]]):
-                            exists = True
-                    if not exists:
-                        s.append({sickness_mf: mf[mf.keys()[0]]})
+                    s.append({sickness_mf: mf[mf.keys()[0]]})
 
         return self.centroid_of_polygon(self.get_polygon_vertices(s))[0]
 
@@ -245,6 +250,8 @@ class FuzzyEngine(object):
         return area / 2.0
 
     def centroid_of_polygon(self, points):
+        if not points:
+            return (0, 0)
         area = self.area_of_polygon(*zip(*points))
         result_x = 0
         result_y = 0
